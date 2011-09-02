@@ -1,16 +1,28 @@
 package controllers;
 
-import play.*;
-import play.mvc.*;
+import models.Post;
+import play.Play;
+import play.db.jpa.GenericModel;
+import play.mvc.Before;
+import play.mvc.Controller;
 
-import java.util.*;
-
-import models.*;
+import java.util.List;
 
 public class Application extends Controller {
 
+    @Before
+    static void addDefaults() {
+        renderArgs.put("blogTitle", Play.configuration.getProperty("blog.title"));
+        renderArgs.put("blogBaseline", Play.configuration.getProperty("blog.baseline"));
+    }
+
     public static void index() {
-        render();
+        final GenericModel.JPAQuery posts = Post.find("order by postedAt desc");
+
+        Post frontPost = posts.first();
+        List<Post> olderPosts = posts.from(1).fetch(10);
+
+        render(frontPost, olderPosts);
     }
 
 }
